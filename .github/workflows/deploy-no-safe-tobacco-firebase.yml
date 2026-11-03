@@ -1,14 +1,13 @@
 name: Deploy no-safe-tobacco to Firebase Hosting
 
-# Manual until Firebase project access and a scoped service account are configured.
-# Do not enable automatic production deploys before the first verified release.
+# Publish only this site's files; other sites and repositories are unaffected.
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "safe-tobacco/**"
   workflow_dispatch:
-    inputs:
-      firebase_project_id:
-        description: 'Dedicated Firebase project ID for no-safe-tobacco.com'
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -25,10 +24,16 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Verify site assets
+        run: |
+          test -s safe-tobacco/index.html
+          test -s safe-tobacco/firebase.json
+          test -s safe-tobacco/og-image.jpg
+
       - name: Deploy to Firebase Hosting live channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NO_SAFE_TOBACCO }}
-          projectId: ${{ inputs.firebase_project_id }}
+          projectId: no-safe-tobacco
           channelId: live
           entryPoint: safe-tobacco
